@@ -193,6 +193,12 @@ class Element:
 
         return element
 
+    def remove_child_element(self, element: "Element"):
+        """Removes a child element from this element"""
+
+        self.get_child_elements().remove(element)
+        element.set_parent_element(None)
+
     def get_parent_element(self):
         """Returns the parent element of this element
         :rtype: Element

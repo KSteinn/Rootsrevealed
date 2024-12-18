@@ -123,9 +123,9 @@ class Parser:
         :type strict: bool
         """
         with open(file_path, 'rb') as gedcom_stream:
-            self.parse(gedcom_stream, strict)
+            self.parse_stream(gedcom_stream, strict)
 
-    def parse(self, gedcom_stream, strict=True):
+    def parse_stream(self, gedcom_stream, strict=True):
         """Parses a stream, or an array of lines, as GEDCOM 5.5 formatted data
         :type gedcom_stream: a file stream, or str array of lines with new line at the end
         :type strict: bool
@@ -137,24 +137,29 @@ class Parser:
         last_element = self.get_root_element()
 
         for line in gedcom_stream:
-            last_element = self.__parse_line(line_number, line.decode('utf-8-sig'), last_element, strict)
+            last_element = self.parse_line(line_number, line.decode('utf-8-sig'), last_element, strict)
+            line_number += 1
+
+    def parse(self, string: str, strict=True):
+        """Parses a stream, or an array of lines, as GEDCOM 5.5 formatted data"""
+        self.invalidate_cache()
+        self.__root_element = RootElement()
+
+        line_number = 1
+        last_element = self.get_root_element()
+
+        for line in string.strip().split("\n"):
+            last_element = self.parse_line(line_number, line, last_element, strict)
             line_number += 1
 
     # Private methods
 
     @staticmethod
-    def __parse_line(line_number, line, last_element, strict=True):
+    def parse_line(line_number: int, line: str, last_element: Element, strict=True) -> Element:
         """Parse a line from a GEDCOM 5.5 formatted document
 
         Each line should have the following (bracketed items optional):
         level + ' ' + [pointer + ' ' +] tag + [' ' + line_value]
-
-        :type line_number: int
-        :type line: str
-        :type last_element: Element
-        :type strict: bool
-
-        :rtype: Element
         """
 
         # Level must start with non-negative int, no leading zeros.
